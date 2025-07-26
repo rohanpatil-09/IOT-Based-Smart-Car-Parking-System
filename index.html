@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Parking System</title>
+    
+    <style>
+        /* From index.css */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif, 'Arial Narrow Bold';
+            background: url('https://images.unsplash.com/photo-1602632060430-4c6be53c88a5') no-repeat center center fixed;
+            background-size: cover;
+            color: #fff;
+        }
+        .welcome-container {
+            text-align: center;
+            padding: 80px 20px;
+            background-color: rgba(0, 0, 0, 0.788);
+            min-height: 100vh;
+        }
+        h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+            font-family: 'Arial Narrow', Arial, sans-serif, 'Times New Roman', Times, serif, Impact, 'Arial Narrow Bold', sans-serif;
+            color: #ffffff;
+        }
+        .instructions {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: auto;
+            max-width: 700px;
+            border-radius: 15px;
+            font-size: 1.2em;
+            text-align: left;
+        }
+        .instructions ul {
+            list-style-type: square;
+            padding-left: 20px;
+        }
+        .enter-btn {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 12px 30px;
+            font-size: 1.2em;
+            background-color: #28a745;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 10px;
+            transition: background 0.3s;
+        }
+        .enter-btn:hover {
+            background-color: #218838;
+        }
+
+        /* From parking.css (corrected and integrated) */
+        .dashboard-header {
+            background-color: #333;
+            text-align: center;
+            color: white;
+            padding: 20px 0;
+        }
+        .parking-dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            text-align:center;
+            justify-content: center;
+            padding: 5px 20px;
+        }
+        .slot {
+            width: 100px; 
+            height: 160px;
+            margin: 20px;
+            border-radius: 20px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.3em; /* Base font size for slot */
+            transition: transform 0.5s, background-color 0.5s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .slot.available {
+            background-color: green;
+        }
+        .slot.occupied {
+            background-color: red;
+        }
+        .slot:hover {
+            transform: scale(1.1);
+        }
+        .thank-you {
+            margin-top: 400px;
+            font-weight: bold;
+            font-style: oblique;
+            text-align: center;
+            color: red;
+        }
+
+        /* From styles.css (cleaned up and integrated) */
+        .container { 
+            padding: 50px;
+        }
+        .btn { 
+            display: inline-block;
+            padding: 10px 20px;
+            background: #28a745;
+            color: white;
+            text-decoration: none;
+            margin-top: 20px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        .btn:hover {
+            background: #218838;
+        }
+        .slots-container { 
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px; 
+            margin-top: 40px;
+        }
+        .slot.occupied { 
+            background: red;
+        }
+
+        /* Hide the parking dashboard initially */
+        #parkingDashboardSection {
+            display: none;
+        }
+        /* Styles for smaller and thinner text */
+        .slot-number {
+            font-size: 1.3em; /* Slightly smaller than before */
+            font-weight: bold; /* Keep bold for prominence */
+            margin-bottom: 2px; /* Reduced space */
+        }
+        .slot-status {
+            font-size: 0.8em; /* Significantly smaller */
+            font-weight: lighter; /* Thinner text */
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container" id="welcomeSection">
+        <h1>Welcome to Smart Car Parking System</h1>
+        <div class="instructions">
+            <h3>Instructions:</h3>
+            <ul>
+                <li>Wait for the gate to open. Do not honk or force the gate.</li>
+                <li>Park only in available green slots.</li>
+                <li>Red slots are occupied – do not park there.</li>
+                <li>Ensure your vehicle is within the white boundary lines</li>
+                <li>Do not block other vehicles.</li>
+                <li>Make sure that while entering or exiting do not damage any other vehical.</li>
+            </ul>
+        </div>
+        <a href="#" class="enter-btn" id="enterDashboardBtn">Enter Parking Dashboard</a>
+    </div>
+
+    <div class="parking-dashboard-container" id="parkingDashboardSection">
+        <div class="dashboard-header">
+            <h1>Smart Parking System Dashboard</h1>
+        </div>
+        <div class="parking-dashboard" id="parkingDashboard">
+            <div class="slot" id="slot1"><span class="slot-number">Slot 1</span><span class="slot-status"></span></div>
+            <div class="slot" id="slot2"><span class="slot-number">Slot 2</span><span class="slot-status"></span></div>
+            <div class="slot" id="slot3"><span class="slot-number">Slot 3</span><span class="slot-status"></span></div>
+            <div class="slot" id="slot4"><span class="slot-number">Slot 4</span><span class="slot-status"></span></div>
+        </div>
+        <div class="thank-you">
+            <h3>Thank You For Visiting!!</h3>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    
+    <script>
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCOjw6rQDtpI225dYhc1u_R_Wv0EBVTgG4",
+            authDomain: "smart-parking-system-be293.firebaseapp.com",
+            databaseURL: "https://smart-parking-system-be293-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "smart-parking-system-be293",
+            storageBucket: "smart-parking-system-be293.firebasestorage.app",
+            messagingSenderId: "218346152117",
+            appId: "1:218346152117:web:8ed80f643c39f239481efc",
+            measurementId: "G-C4LW2MRYDH"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Get a reference to the database service
+        const database = firebase.database();
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const welcomeSection = document.getElementById('welcomeSection');
+            const parkingDashboardSection = document.getElementById('parkingDashboardSection');
+            const enterDashboardBtn = document.getElementById('enterDashboardBtn');
+
+            // Initial setup: Show welcome, hide dashboard
+            welcomeSection.style.display = 'block';
+            parkingDashboardSection.style.display = 'none';
+
+            // Function to update a single slot's appearance
+            function updateSlotDisplay(slotElement, status) {
+                const statusSpan = slotElement.querySelector('.slot-status');
+                slotElement.classList.remove("available", "occupied"); // Clear existing classes
+                if (status === 0) {
+                    slotElement.classList.add("available");
+                    if (statusSpan) statusSpan.textContent = "Available";
+                } else {
+                    slotElement.classList.add("occupied");
+                    if (statusSpan) statusSpan.textContent = "Occupied";
+                }
+            }
+
+            // Event listener for the button to show dashboard
+            enterDashboardBtn.addEventListener('click', function(event) {
+                event.preventDefault(); // Prevent default link behavior
+                welcomeSection.style.display = 'none'; // Hide welcome
+                parkingDashboardSection.style.display = 'block'; // Show dashboard
+
+                // --- Real-time listener for Firebase Database ---
+                // Listen to the 'parking_slots' node in your Firebase Realtime Database
+                database.ref('parking_slots').on('value', (snapshot) => {
+                    const slotsData = snapshot.val(); // Get all slot data
+                    if (slotsData) {
+                        for (let i = 1; i <= 4; i++) { // Loop through slot1 to slot4
+                            const slotId = `slot${i}`;
+                            const slotElement = document.getElementById(slotId);
+                            // Check if the slot data exists and has a 'status' property
+                            if (slotElement && slotsData[slotId] && typeof slotsData[slotId].status !== 'undefined') {
+                                updateSlotDisplay(slotElement, slotsData[slotId].status);
+                            } else if (slotElement) {
+                                // If a slot doesn't have data in Firebase, default it to available
+                                updateSlotDisplay(slotElement, 0); 
+                                console.warn(`Slot ${slotId} data missing or incomplete in Firebase, defaulting to Available.`);
+                            }
+                        }
+                    } else {
+                        console.log("No parking slot data found in Firebase. All slots defaulted to Available.");
+                        // If there's no 'parking_slots' node at all, default all slots to available
+                        for (let i = 1; i <= 4; i++) {
+                            const slotElement = document.getElementById(`slot${i}`);
+                            if (slotElement) {
+                                updateSlotDisplay(slotElement, 0); // Default all to available
+                            }
+                        }
+                    }
+                }, (error) => {
+                    console.error("Error fetching parking slots data:", error);
+                    // You might want to display an error message on the page if data fails to load
+                });
+            });
+        });
+    </script>
+</body>
+</html>
